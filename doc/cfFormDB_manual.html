@@ -1,0 +1,95 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>cfFormDBマニュアル v1.0</title>
+<style type="text/css">
+body { line-height: 140%;}
+li { margin-bottom: 5px;}
+h1 { background: #063e0d; color: #fff; padding: 15px; border: 5px double #075411; margin: 0px 0px 10px 0px;-moz-border-radius: 8px;border-radius: 8px;text-shadow: 1px 1px 1px #0f7a1a; }
+h2 { color: #FFF; background: #063e0d; padding: 10px;-moz-border-radius: 5px;border-radius: 5px;}
+h3 { margin-left: 20px; margin-top: 40px; color: #063e0d; border-bottom: 1px dotted #063e0d; padding-bottom: 5px; font-size: 116%;}
+h4 { margin-left: 30px; color: #036; margin-bottom: 10px; font-size: 108%;}
+h5 { margin-left: 50px; font-size: 100%;}
+p { margin-left: 50px;}
+ol, ul, dl { margin-left: 50px; padding-left: 20px;}
+dt { font-weight: bold; color: #072854;}
+dd { margin-bottom: 5px; padding-left: 20px; margin-left: 0px;}
+pre { margin-left: 50px; padding: 5px; border: 1px dotted #ffa; background: #ffc;}
+code { background: #ffc; padding: 3px;}
+strong { font-size: large;}
+#version { text-align: right; margin-bottom: 20px;}
+.note { color: #666; font-size: 90%;}
+.new { font-size: x-small; color: #f00; font-weight: bold;}
+</style>
+</head>
+
+<body>
+<h1>cfFormDBマニュアル</h1>
+<p id="version"><strong>v1.0</strong></p>
+<ul>
+  <li><a href="#c1">設置</a></li>
+  <li><a href="#c2">機能解説</a></li>
+  <li><a href="#c3">バグレポート、お問い合わせ、サポート</a></li>
+  <li><a href="#c4">ご注意、免責事項</a></li>
+  <li><a href="#c5">更新履歴</a></li>
+</ul>
+
+<h2 id="c1"> ■ 設置</h2>
+
+<h3>【インストール】</h3>
+<ol>
+  <li>/assets/modules/ フォルダ内に cfFormDB フォルダをアップロードします。 </li>
+  <li>MODX管理画面にログインし、モジュール管理画面を開きます。</li>
+  <li>「モジュールを作成」ボタンをクリックし、以下の情報を入力します。（「説明」は任意）<br />
+    ■モジュール名： cfFormDB<br />
+    ■説明： &lt;strong&gt;1.0&lt;/strong&gt; cfFormMailerで送信された情報を表示・CSV出力<br />
+    ■モジュールコード欄： ファイル module.cfFormDB.php の内容をコピー＆ペースト</li>
+  <li>「設定」タブをクリックし、「モジュール設定」欄に以下の文をコピー＆ペーストし、「パラメータ表示の更新」ボタンをクリックします。<br />
+  <code>&amp;viewFields=一覧画面で表示する項目;text;</code></li>
+  <li>「一覧画面で表示する項目」欄に、一覧表示画面で表示するフィールド名をコンマ区切りで入力します。（※任意）<br />
+    フィールド名はcfFormMailerで使用しているフィールド名となります。<br />
+  指定しない場合は、すべての項目が表示されます。</li>
+  <li>「保存」ボタンをクリックし、モジュールの登録を完了します。</li>
+  <li>モジュールタブから「cfFormDB」をクリックします。</li>
+  <li>初回起動時は「cfFormDB用のテーブルが作成されていません。」と表示されますので、画面内の「テーブル新規作成」ボタンをクリックします。<br />
+  cfFormDB用のテーブルがデータベースに追加されます。</li>
+  <li>「テーブルを作成しました」と表示され、設置完了です。</li>
+</ol>
+<h3>【利用開始】</h3>
+<p>cfFormMailerの環境設定チャンクから、use_store_db の設定値を「1」にします。</p>
+<p><code># 投稿内容をデータベースに記録する （0: 記録しない[デフォルト] / 1: 記録する）<br />
+# この機能を使用するには、あらかじめcfFormDBモジュールをインストールし、記録用テーブルを作成しておく必要があります<br />
+use_store_db = 1</code></p>
+
+
+
+<h2 id="c2">■ 機能解説</h2>
+
+<h3>【表示】</h3>
+<p>情報が保存されている場合、cfFormDBモジュールタブをクリックすると、登録が新しいものから順に一覧表示されます。<br />
+一画面に表示する件数を変更することができます。（初期値：30件）</p>
+<p>「全項目表示」をクリックすると、該当する登録の登録内容一覧が表示されます。</p>
+<h3>【CSV出力】</h3>
+<p>「CSV出力」ボタンをクリックすると、出力する項目と出力件数、出力順を指定する画面が表示されます。<br />
+出力したい条件を指定したら、「出力する」ボタンをクリックして下さい。</p>
+
+
+<h2 id="c3">■ バグレポート、お問い合わせ、サポート</h2>
+<p>ブログ「網的脚本実験室」まで<br />
+  <a href="http://www.clefarray-web.net/blog/">http://www.clefarray-web.net/blog/</a>
+<p>または、MODxの公式日本語フォーラムでも受け付けています。
+
+<h2 id="c4"> ■ ご注意、免責事項</h2>
+<p> ※本スクリプトは MODx と同様、GPL ライセンスの元で配布されています。<br />
+※本スクリプトに関してのメール等での個別のお問い合わせはご遠慮ください。<br />
+※本スクリプトの使用によって生じた損害等について、作者は一切の責務を負わない事とさせていただきます。ご了承ください。<br />
+※動作検証は MODx Evolution 1.0.x 日本語版にて行っています。また文字コードは UTF-8 に限定しております。
+
+<h2 id="c5"> ■ 更新履歴</h2>
+<dl>
+  <dt>2011-04-04 v1.0（公開初版）</dt>
+</dl>
+
+</body>
+</html>
