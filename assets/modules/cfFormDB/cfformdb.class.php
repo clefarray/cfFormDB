@@ -313,11 +313,18 @@ class cfFormDB {
     } else {
       $flag = false;
       $this->modx->db->query('START TRANSACTION');
-      $sql = 'CREATE TABLE ' .  $this->modx->getFullTableName('cfformdb') . '(`postid` int auto_increment primary key, `created` datetime)';
-      $this->modx->db->query($sql);
+      $tbl_cfformdb        = $this->modx->getFullTableName('cfformdb');
+      $tbl_cfformdb_detail = $this->modx->getFullTableName('cfformdb_detail');
+      if(version_compare($this->modx->db->getVersion(),'4.1.0', '>='))
+      {
+          $char_collate = ' DEFAULT CHARSET=utf8 COLLATE utf8_general_ci';
+      }
+      else $char_collate = '';
+      $sql = "CREATE TABLE {$tbl_cfformdb} (`postid` int auto_increment primary key, `created` datetime) ENGINE=MyISAM";
+      $this->modx->db->query($sql.$char_collate);
       if (!($err = $this->modx->db->getLastError())) {
-        $sql = 'CREATE TABLE ' .  $this->modx->getFullTableName('cfformdb_detail') . '(`postid` int not null, `field` varchar(255) not null, `value` text, `rank` int)';
-        $this->modx->db->query($sql);
+        $sql = "CREATE TABLE {$tbl_cfformdb_detail} (`postid` int not null, `field` varchar(255) not null, `value` text, `rank` int) ENGINE=MyISAM";
+        $this->modx->db->query($sql.$char_collate);
         if (!($err2 = $this->modx->db->getLastError())) {
           $this->modx->db->query('COMMIT');
           $flag = true;
