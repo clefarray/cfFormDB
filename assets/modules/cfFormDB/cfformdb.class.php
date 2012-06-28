@@ -28,7 +28,7 @@ class cfFormDB {
     $this->data['posturl']   = 'index.php?a=112&id=' . $content['id'];
     $this->data['pagetitle'] = $content['name'] . ' v' .$this->version;
 
-    include_once $incPath . '/extenders/maketable.class.php';
+    include_once $modx->config['base_path'] . 'manager/includes/extenders/maketable.class.php';
   }
 
   /**
