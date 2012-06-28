@@ -2,8 +2,8 @@
  * cfFormDB
  * @version 1.0
  *
- * [ƒ‚ƒWƒ…[ƒ‹İ’è]
- * &viewFields=ˆê——‰æ–Ê‚Å•\¦‚·‚é€–Ú;text;
+ * [ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«è¨­å®š]
+ * &viewFields=ä¸€è¦§ç”»é¢ã§è¡¨ç¤ºã™ã‚‹é …ç›®;text;
  */
 include_once MODX_BASE_PATH . 'assets/modules/cfFormDB/cfformdb.class.php';
 
