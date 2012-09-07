@@ -14,6 +14,8 @@ class cfFormDB {
   var $modx;
   var $data;
   var $version = '1.0';
+  var $tbl_cfformdb;
+  var $tbl_cfformdb_detail;
 
   /**
    * コンストラクタ
@@ -24,11 +26,14 @@ class cfFormDB {
     $this->modx = &$modx;
     $this->e    = &$e;
     
+    $this->tbl_cfformdb        = $this->modx->getFullTableName('cfformdb');
+    $this->tbl_cfformdb_detail = $this->modx->getFullTableName('cfformdb_detail');
+    
     $this->data['theme']     = '/' . $manager_theme;
     $this->data['posturl']   = 'index.php?a=112&id=' . $content['id'];
     $this->data['pagetitle'] = $content['name'] . ' v' .$this->version;
 
-    include_once $incPath . '/extenders/maketable.class.php';
+    include_once $modx->config['base_path'] . 'manager/includes/extenders/maketable.class.php';
   }
 
   /**
@@ -81,7 +86,7 @@ class cfFormDB {
       /**
        * 登録済みデータの一覧表示
        */
-      $rs = $this->modx->db->select('postid, created', $this->modx->getFullTableName('cfformdb'), '', 'created DESC');
+      $rs = $this->modx->db->select('postid, created', $this->tbl_cfformdb, '', 'created DESC');
       $records = array();
       if ($this->modx->db->getRecordCount($rs) > 0) {
         // 表示する項目を取得
@@ -122,12 +127,12 @@ class cfFormDB {
         }
         
         // 投稿を取得
-        $rs = $this->modx->db->select('postid, created', $this->modx->getFullTableName('cfformdb'), '', 'created DESC', $start . ',' . $count);
+        $rs = $this->modx->db->select('postid, created', $this->tbl_cfformdb, '', 'created DESC', $start . ',' . $count);
         $field_keys = array();
         $loop = 0;
         while ($buf = $this->modx->db->getRow($rs)) {
           $where = 'postid=' . $buf['postid'] . (count($viewParamsWhere) ? ' AND field IN (' . implode(",", $viewParamsWhere) . ')' : '');
-          $detail_rs = $this->modx->db->select('field,value', $this->modx->getFullTableName('cfformdb_detail'), $where, 'rank ASC');
+          $detail_rs = $this->modx->db->select('field,value', $this->tbl_cfformdb_detail, $where, 'rank ASC');
           $records[$loop]['id'] = $buf['postid'];
           while ($detail_buf = $this->modx->db->getRow($detail_rs)) {
             $records[$loop][$detail_buf['field']] = $detail_buf['value'];
@@ -177,8 +182,8 @@ class cfFormDB {
     $count = intval($_POST['ct']);
     if ($id) {
       $sql = sprintf("SELECT B.field, B.value, A.created FROM %s A LEFT JOIN %s B ON A.postid=B.postid WHERE A.postid=%d ORDER BY B.rank ASC",
-        $this->modx->getFullTableName('cfformdb'),
-        $this->modx->getFullTableName('cfformdb_detail'),
+        $this->tbl_cfformdb,
+        $this->tbl_cfformdb_detail,
         $id
       );
       $rs = $this->modx->db->query($sql);
@@ -209,9 +214,9 @@ class cfFormDB {
   function delete() {
     $id = intval($_POST['tid']);
     if ($id) {
-      $sql = sprintf("DELETE FROM %s WHERE postid=%d LIMIT 1", $this->modx->getFullTableName('cfformdb'), $id);
+      $sql = sprintf("DELETE FROM %s WHERE postid=%d LIMIT 1", $this->tbl_cfformdb, $id);
       $this->modx->db->query($sql);
-      $sql = sprintf("DELETE FROM %s WHERE postid=%d LIMIT 1", $this->modx->getFullTableName('cfformdb_detail'), $id);
+      $sql = sprintf("DELETE FROM %s WHERE postid=%d LIMIT 1", $this->tbl_cfformdb_detail, $id);
       $this->modx->db->query($sql);
       $this->data['content'] = $this->parser('<p>ID: ' . $id . 'の投稿を削除しました<br />
         <ul class="actionButtons">
@@ -227,7 +232,7 @@ class cfFormDB {
   function csv() {
     
     // 件数チェック
-    $rs = $this->modx->db->query("SELECT COUNT(*) FROM " . $this->modx->getFullTableName('cfformdb'));
+    $rs = $this->modx->db->select('COUNT(*)', $this->tbl_cfformdb);
     if (!$this->modx->db->getRecordCount($rs)) {
       $this->e->setError(1, '出力するデータがありません');
       $this->e->dumpError();
@@ -235,8 +240,7 @@ class cfFormDB {
     }
 
     // 項目一覧を取得
-    $sql = sprintf("SELECT DISTINCT(field) FROM %s ORDER BY rank", $this->modx->getFullTableName('cfformdb_detail'));
-    $rs = $this->modx->db->query($sql);
+    $rs = $this->modx->db->select('DISTINCT(field)', $this->tbl_cfformdb_detail, '', 'rank');
     $loop = 0;
     while ($buf = $this->modx->db->getRow($rs)) {
       $fields[] = sprintf('<input type="checkbox" name="fields[]" value="%s" id="f_%d" checked="checked" /> <label for="f_%d">%s</label>', $buf['field'], $loop, $loop, $buf['field']);
@@ -279,12 +283,12 @@ class cfFormDB {
 
     ob_start();
     $loop = 0;
-    $sql = sprintf("SELECT postid,created FROM %s ORDER BY %s", $this->modx->getFullTableName('cfformdb'), $sort) . ($count ? ' LIMIT ' . $count : '');
+    $sql = sprintf("SELECT postid,created FROM %s ORDER BY %s", $this->tbl_cfformdb, $sort) . ($count ? ' LIMIT ' . $count : '');
     $rs = $this->modx->db->query($sql);
     echo '//' . implode(',', array_merge(array('ID'), array_values($_POST['fields']), array('datetime'))) . "\n";
     while ($buf = $this->modx->db->getRow($rs)) {
       echo $buf['postid'] . ',';
-      $sql = sprintf("SELECT * FROM %s WHERE postid=%d AND field IN (%s) ORDER BY rank", $this->modx->getFullTableName('cfformdb_detail'), $buf['postid'], implode(',', $fields));
+      $sql = sprintf("SELECT * FROM %s WHERE postid=%d AND field IN (%s) ORDER BY rank", $this->tbl_cfformdb_detail, $buf['postid'], implode(',', $fields));
       $detail_rs = $this->modx->db->query($sql);
       $detail = array();
       while ($detail_buf = $this->modx->db->getRow($detail_rs)) {
@@ -313,11 +317,16 @@ class cfFormDB {
     } else {
       $flag = false;
       $this->modx->db->query('START TRANSACTION');
-      $sql = 'CREATE TABLE ' .  $this->modx->getFullTableName('cfformdb') . '(`postid` int auto_increment primary key, `created` datetime)';
-      $this->modx->db->query($sql);
+      if(version_compare($this->modx->db->getVersion(),'4.1.0', '>='))
+      {
+          $char_collate = ' DEFAULT CHARSET=utf8 COLLATE utf8_general_ci';
+      }
+      else $char_collate = '';
+      $sql = "CREATE TABLE {$this->tbl_cfformdb} (`postid` int auto_increment primary key, `created` datetime) ENGINE=MyISAM";
+      $this->modx->db->query($sql.$char_collate);
       if (!($err = $this->modx->db->getLastError())) {
-        $sql = 'CREATE TABLE ' .  $this->modx->getFullTableName('cfformdb_detail') . '(`postid` int not null, `field` varchar(255) not null, `value` text, `rank` int)';
-        $this->modx->db->query($sql);
+        $sql = "CREATE TABLE {$this->tbl_cfformdb_detail} (`postid` int not null, `field` varchar(255) not null, `value` text, `rank` int) ENGINE=MyISAM";
+        $this->modx->db->query($sql.$char_collate);
         if (!($err2 = $this->modx->db->getLastError())) {
           $this->modx->db->query('COMMIT');
           $flag = true;
