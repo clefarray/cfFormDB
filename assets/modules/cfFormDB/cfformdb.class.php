@@ -135,6 +135,8 @@ class cfFormDB {
           $detail_rs = $this->modx->db->select('field,value', $this->tbl_cfformdb_detail, $where, 'rank ASC');
           $records[$loop]['id'] = $buf['postid'];
           while ($detail_buf = $this->modx->db->getRow($detail_rs)) {
+            if(100 < mb_strlen($detail_buf['value'],'utf8'))
+                $detail_buf['value'] = mb_substr($detail_buf['value'],0,100,'utf8') . ' ...';
             $records[$loop][$detail_buf['field']] = $detail_buf['value'];
             $field_keys[$detail_buf['field']] = 1;
           }
