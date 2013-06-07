@@ -4,6 +4,9 @@
 <head>
 <link rel="stylesheet" type="text/css" href="media/style[+theme+]/style.css" />
 <title>[+pagetitle+]</title>
+<style type="text/css">
+table.grid td {vertical-align:top;}
+</style>
 <script type="text/javascript">
 function submitAction(mode, id) {
   if (mode == 'delete') {
