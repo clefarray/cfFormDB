@@ -303,7 +303,9 @@ class cfFormDB {
       $detail = array();
       while ($detail_buf = $this->modx->db->getRow($detail_rs)) {
         if (in_array($detail_buf['field'], $_POST['fields'])) {
-          $detail[$detail_buf['field']] = $detail_buf['value'];
+            if(strpos($detail_buf['value'],'"')!==false)
+                $detail_buf['value'] = str_replace('"','""',$detail_buf['value']);
+            $detail[$detail_buf['field']] = $detail_buf['value'];
         }
       }
       foreach ($_POST['fields'] as $field) {
