@@ -21,7 +21,6 @@ function submitAction(mode, id) {
 
 <body>
   <h1>[+pagetitle+]</h1>
-  <div class="sectionBody">
     <div id="actions">
       <ul class="actionButtons">
         [+add_buttons+]
@@ -30,8 +29,9 @@ function submitAction(mode, id) {
         <li><a href="index.php?a=2"><img src="[+icons_cancel+]" /> 閉じる</a></li>
       </ul>
     </div>
-    <div class="content">[+content+]</div>
-  </div>
+    <div class="section">
+    [+content+]
+    </div>
   <form action="[+posturl+]" method="post" name="actionform">
     <input type="hidden" name="tid" value="" />
     <input type="hidden" name="mode" value="" />

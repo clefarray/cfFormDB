@@ -13,7 +13,8 @@ window.addEvent('domready', function() {
 	new DatePicker($('end'), {'yearOffset': dpOffset,'format':dpformat,'dayNames':dayNames,'monthNames':monthNames,'dateonly':1});
 });
 </script>
-<h3>CSV出力設定</h3>
+<div class="sectionHeader">CSV出力設定</div>
+<div class="sectionBody">
 <p>下記設定を確認し、「出力する」ボタンをクリックしてください</p>
 <form action="[+posturl+]" method="post" name="csvform" id="mutate">
 <input type="hidden" name="mode" value="csv_generate" />
@@ -55,3 +56,4 @@ window.addEvent('domready', function() {
 </table>
 <div class="actionButtons"><a href="#" onclick="document.csvform.submit();return false;"><img src="[+icons_save+]" />出力する</a></div>
 </form>
+</div>

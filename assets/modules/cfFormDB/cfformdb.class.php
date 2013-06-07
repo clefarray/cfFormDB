@@ -174,7 +174,7 @@ class cfFormDB {
         $this->data['page'] = $page;
         $this->data['count'] = $count;
       } else {
-        $this->data['content'] = '<p>データはありません</p>';
+        $this->data['content'] = '<div class="sectionBody">データはありません</div>';
       }
     }
   }
@@ -207,7 +207,8 @@ class cfFormDB {
         $tbl->setRowRegularClass('gridItem');
         $tbl->setRowAlternateClass('gridAltItem');
 
-        $this->data['content'] = sprintf("<p>ID: %d<br />投稿日時：%s</p>", $id, $created) . $this->parser($tbl->create($records, array()), $this->data);
+        $content = sprintf("<p>ID: %d<br />投稿日時：%s</p>", $id, $created) . $this->parser($tbl->create($records, array()), $this->data);
+        $this->data['content'] = '<div class="sectionBody">' . $content . '</div>';
         $this->data['add_buttons']  = $this->parser('
         <li><a href="[+posturl+]&amp;cfp=' . "{$page}&amp;ct={$count}" . '"><img src="[+icons_cancel+]" />一覧に戻る</a></li>
         <li><a href="#" onclick="submitAction(\'delete\', ' . $id . ');return false;"><img src="[+icons_delete+]" />削除</a></li>', $this->data);
