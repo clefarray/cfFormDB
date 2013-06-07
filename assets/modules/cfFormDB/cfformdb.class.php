@@ -269,8 +269,8 @@ class cfFormDB {
     
     // 出力する項目を取得
     if (!count($_POST['fields'])) {
-      $this->e->setError(1, '出力する項目がありません');
-      $this->e->dumpError();
+      echo '<script>alert("出力する項目がありません");location.href="' . $this->data["posturl"] . '";</script>';
+      exit;
     } else {
       $fields = array();
       foreach ($_POST['fields'] as $val) {
