@@ -245,6 +245,7 @@ class cfFormDB {
     // 項目一覧を取得
     $rs = $this->modx->db->select('DISTINCT(field)', $this->tbl_cfformdb_detail, '', 'rank');
     $loop = 0;
+    $fields = array();
     while ($buf = $this->modx->db->getRow($rs)) {
       $fields[] = sprintf('<input type="checkbox" name="fields[]" value="%s" id="f_%d" checked="checked" /> <label for="f_%d">%s</label>', $buf['field'], $loop, $loop, $buf['field']);
       $loop++;
