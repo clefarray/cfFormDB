@@ -27,7 +27,7 @@ function submitAction(mode, id) {
         [+add_buttons+]
         <li><a href="#" onclick="submitAction('csv','');return false;"><img src="[+icons_save+]" /> CSV出力</a></li>
         <li><a href="[+posturl+]"><img src="[+icons_refresh+]" /> 再読み込み</a></li>
-        <li><a href="index.php?a=106"><img src="[+icons_cancel+]" /> 閉じる</a></li>
+        <li><a href="index.php?a=2"><img src="[+icons_cancel+]" /> 閉じる</a></li>
       </ul>
     </div>
     <div class="content">[+content+]</div>
