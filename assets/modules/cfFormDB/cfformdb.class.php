@@ -193,6 +193,7 @@ class cfFormDB {
         while ($buf = $this->modx->db->getRow($rs)) {
           $created = $buf['created'];
           unset($buf['created']);
+          $buf['value'] = nl2br($buf['value']);
           $records[] = $buf;
         }
         
