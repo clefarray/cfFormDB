@@ -6,7 +6,7 @@
  * 
  * @author		Clefarray Factory
  * @version	1.0
- * @internal	@properties	&viewFields=一覧画面で表示する項目;text;
+ * @internal	@properties &viewFields=一覧画面で表示する項目;text;&defaultView=デフォルト画面;list;list,csv;list
  *
  */  
 class cfFormDB {
@@ -83,6 +83,11 @@ class cfFormDB {
       // テーブルが存在しない場合
       $this->data['content'] = $this->parser($this->loadTemplate('tablecreate.tpl'), $this->data);
     } else {
+      $defaultView = isset($this->modx->event->params['defaultView']) ? $this->modx->event->params['defaultView'] : 'list';
+      if($defaultView==='csv') {
+          $this->csv();
+          return true;
+      }
       /**
        * 登録済みデータの一覧表示
        */

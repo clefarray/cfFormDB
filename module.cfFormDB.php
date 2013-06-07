@@ -3,7 +3,7 @@
  * @version 1.0
  *
  * [モジュール設定]
- * &viewFields=一覧画面で表示する項目;text;
+ * &viewFields=一覧画面で表示する項目;text;&defaultView=デフォルト画面;list;list,csv;list
  */
 include_once MODX_BASE_PATH . 'assets/modules/cfFormDB/cfformdb.class.php';
 
