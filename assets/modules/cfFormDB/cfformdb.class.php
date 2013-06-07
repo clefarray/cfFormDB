@@ -255,6 +255,7 @@ class cfFormDB {
       $fields[] = sprintf('<input type="checkbox" name="fields[]" value="%s" id="f_%d" checked="checked" /> <label for="f_%d">%s</label>', $buf['field'], $loop, $loop, $buf['field']);
       $loop++;
     }
+    $params = $this->data;
     $params['fields'] = implode("<br />", $fields);
     
     $this->data['content'] = $this->parser($this->loadTemplate('csv_settings.tpl'), $params);
