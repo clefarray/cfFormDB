@@ -308,7 +308,10 @@ class cfFormDB {
     }
     $output = ob_get_flush();
     ob_end_clean();
-    echo mb_convert_encoding($output, 'sjis', 'utf-8');
+    $output = mb_convert_encoding($output, 'sjis', 'utf-8');
+    $size = strlen($output);
+    header("Content-Length: {$size}");
+    echo $output;
     exit;
   }
 
