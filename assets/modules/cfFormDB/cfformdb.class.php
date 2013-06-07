@@ -257,6 +257,14 @@ class cfFormDB {
     }
     $params = $this->data;
     $params['fields'] = implode("<br />", $fields);
+    $params['site_url'] = $this->modx->config['site_url'];
+    $params['manager_url'] = MODX_MANAGER_URL;
+    $params['mgrlog_datefr'] = 'この日付から';
+    $params['mgrlog_dateto'] = 'この日付まで';
+    $params['datepicker_offset'] = $this->modx->config['datepicker_offset'];
+    $params['datetime_format']   = $this->modx->config['datetime_format'];
+    $params['dayNames']          = "['日','月','火','水','木','金','土']";
+    $params['monthNames']        = "['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月']";
     
     $this->data['content'] = $this->parser($this->loadTemplate('csv_settings.tpl'), $params);
   }
@@ -286,14 +294,29 @@ class cfFormDB {
     }
     // ソート
     $sort = ($_POST['sort'] ? "created DESC" : "created ASC");
-    
+    // 期間指定
+    $start = !empty($_POST['start']) ? $this->modx->db->escape($_POST['start']) : 0;
+    $end   = !empty($_POST['end'])   ? $this->modx->db->escape($_POST['end'])   : 0;
+    if(!empty($start) && !empty($end))
+    {
+        $where = "WHERE created BETWEEN '{$start}' AND '{$end}'";
+    }
+    elseif(!empty($start))
+    {
+        $where = "WHERE created >= '{$start}'";
+    }
+    elseif(!empty($end))
+    {
+        $where = "WHERE created <= '{$end}'";
+    }
+    else $where = '';
     // データ出力
     header('Content-type: application/octet-stream');
     header('Content-Disposition: attachment; filename=cfoutput.csv');
 
     ob_start();
     $loop = 0;
-    $sql = sprintf("SELECT postid,created FROM %s ORDER BY %s", $this->tbl_cfformdb, $sort) . ($count ? ' LIMIT ' . $count : '');
+    $sql = sprintf("SELECT postid,created FROM %s %s ORDER BY %s", $this->tbl_cfformdb, $where, $sort) . ($count ? ' LIMIT ' . $count : '');
     $rs = $this->modx->db->query($sql);
     echo '//' . implode(',', array_merge(array('ID'), array_values($_POST['fields']), array('datetime'))) . "\n";
     while ($buf = $this->modx->db->getRow($rs)) {
