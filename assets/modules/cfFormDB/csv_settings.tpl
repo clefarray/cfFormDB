@@ -7,8 +7,6 @@ window.addEvent('domready', function() {
 	var dpformat = "[+datetime_format+]";
 	var dayNames = [+dayNames+];
 	var monthNames = [+monthNames+];
-//	new DatePicker($('start'));
-//	new DatePicker($('end'));
 	new DatePicker($('start'),   {'yearOffset': dpOffset,'format':dpformat,'dayNames':dayNames,'monthNames':monthNames,'dateonly':1});
 	new DatePicker($('end'), {'yearOffset': dpOffset,'format':dpformat,'dayNames':dayNames,'monthNames':monthNames,'dateonly':1});
 });
