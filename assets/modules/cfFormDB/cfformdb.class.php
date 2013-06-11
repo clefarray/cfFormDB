@@ -6,7 +6,7 @@
  * 
  * @author		Clefarray Factory
  * @version	1.0
- * @internal	@properties &viewFields=一覧画面で表示する項目;text;&defaultView=デフォルト画面;list;list,csv;list
+ * @internal	@properties &viewFields=一覧画面で表示する項目;text; &defaultView=デフォルト画面;list;list,csv;list &sel_csv_fields=CSV出力項目を選択;list;1,0;1
  *
  */  
 class cfFormDB {
@@ -266,6 +266,7 @@ class cfFormDB {
     $params['datetime_format']   = $this->modx->config['datetime_format'];
     $params['dayNames']          = "['日','月','火','水','木','金','土']";
     $params['monthNames']        = "['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月']";
+    $params['display'] = $this->modx->event->params['sel_csv_fields']==='1' ? '' : 'none';
     
     $this->data['content'] = $this->parser($this->loadTemplate('csv_settings.tpl'), $params);
   }

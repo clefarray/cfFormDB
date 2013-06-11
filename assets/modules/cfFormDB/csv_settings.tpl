@@ -26,7 +26,7 @@ window.addEvent('domready', function() {
     </tr>
   </thead>
   <tbody>
-    <tr>
+    <tr style="display:[+display+];">
       <th>出力する項目</th>
       <td>[+fields+]</td>
     </tr>
