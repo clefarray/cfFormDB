@@ -173,6 +173,11 @@ class cfFormDB {
         $this->data['content'] = $this->parser($this->loadTemplate('list.tpl'), $params);
         $this->data['page'] = $page;
         $this->data['count'] = $count;
+        $this->data['add_buttons']  = $this->parser('
+        <li><a href="#" onclick="submitAction(\'csv\',\'\');return false;"><img src="[+icons_save+]" /> CSV出力</a></li>
+        <li><a href="[+posturl+]"><img src="[+icons_refresh+]" /> 再読み込み</a></li>
+        <li><a href="index.php?a=2"><img src="[+icons_cancel+]" /> 閉じる</a></li>
+        ', $this->data);
       } else {
         $this->data['content'] = '<div class="sectionBody">データはありません</div>';
       }
@@ -211,7 +216,8 @@ class cfFormDB {
         $this->data['content'] = '<div class="sectionBody">' . $content . '</div>';
         $this->data['add_buttons']  = $this->parser('
         <li><a href="[+posturl+]&amp;cfp=' . "{$page}&amp;ct={$count}" . '"><img src="[+icons_cancel+]" />一覧に戻る</a></li>
-        <li><a href="#" onclick="submitAction(\'delete\', ' . $id . ');return false;"><img src="[+icons_delete+]" />削除</a></li>', $this->data);
+        <li><a href="#" onclick="submitAction(\'delete\', ' . $id . ');return false;"><img src="[+icons_delete+]" />削除</a></li>
+        ', $this->data);
       }
     }  
   }
@@ -269,6 +275,10 @@ class cfFormDB {
     $params['display'] = $this->modx->event->params['sel_csv_fields']==='1' ? '' : 'none';
     
     $this->data['content'] = $this->parser($this->loadTemplate('csv_settings.tpl'), $params);
+    $this->data['add_buttons']  = $this->parser('
+    <li><a href="[+posturl+]"><img src="[+icons_refresh+]" /> 一覧表示</a></li>
+    <li><a href="index.php?a=2"><img src="[+icons_cancel+]" /> 閉じる</a></li>
+    ', $this->data);
   }
 
   /**
