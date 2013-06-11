@@ -233,10 +233,15 @@ class cfFormDB {
       $this->modx->db->query($sql);
       $sql = sprintf("DELETE FROM %s WHERE postid=%d LIMIT 1", $this->tbl_cfformdb_detail, $id);
       $this->modx->db->query($sql);
-      $this->data['content'] = $this->parser('<p>ID: ' . $id . 'の投稿を削除しました<br />
+      $this->data['content'] = $this->parser('
+        <div class="section">
+        <div class="sectionBody">
+        <p>ID: ' . $id . 'の投稿を削除しました<br />
         <ul class="actionButtons">
           <li><a href="[+posturl+]"><img src="[+icons_save+]" />戻る</a></li>
-        </ul>', $this->data);
+        </ul>
+        </div>
+        </div>', $this->data);
     } 
   }
 
@@ -384,10 +389,14 @@ class cfFormDB {
       }
 
       if ($flag) {
-        $content = $this->parser('テーブルを作成しました<br />
+        $content = $this->parser('
+        <div class="section">
+        <div class="sectionBody">
+        テーブルを作成しました<br />
         <ul class="actionButtons">
           <li><a href="[+posturl+]"><img src="[+icons_save+]" />戻る</a></li>
-        </ul>', $this->data);
+        </ul>
+        </div></div>', $this->data);
       } else {
         $this->modx->db->query('ROLLBACK');
         $content = 'テーブル作成に失敗しました::' . $err . "::" . $err2;
