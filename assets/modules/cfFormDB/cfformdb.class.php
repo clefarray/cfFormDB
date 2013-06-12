@@ -152,7 +152,7 @@ class cfFormDB {
             $field_keys[$detail_buf['field']] = 1;
           }
           $records[$loop]['created'] = $buf['created'];
-          $records[$loop]['view'] = '<a href="[+posturl+]" onclick="submitAction(\'allfields\', ' . $buf['postid'] . ');return false;"><img src="[+icons_preview_resource+]" />全項目表示</a>';
+          $records[$loop]['view'] = '<a href="[+posturl+]" onclick="submitAction(\'allfields\', ' . $buf['postid'] . ');return false;"><img src="[+icons_preview_resource+]" />詳細表示</a>';
           $records[$loop]['delete'] = '<a href="[+posturl+]" onclick="submitAction(\'delete\', ' . $buf['postid'] . ');return false;"><img src="[+icons_delete+]" />削除</a>';
           $loop++;
         }
