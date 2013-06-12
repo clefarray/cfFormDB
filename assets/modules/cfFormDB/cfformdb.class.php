@@ -215,7 +215,7 @@ class cfFormDB {
         $content = sprintf("<p>ID: %d<br />投稿日時：%s</p>", $id, $created) . $this->parser($tbl->create($records, array()), $this->data);
         $this->data['content'] = '<div class="sectionBody">' . $content . '</div>';
         $this->data['add_buttons']  = $this->parser('
-        <li><a href="[+posturl+]&amp;cfp=' . "{$page}&amp;ct={$count}" . '"><img src="[+icons_cancel+]" />一覧に戻る</a></li>
+        <li><a href="[+posturl+]&amp;mode=list&amp;cfp=' . "{$page}&amp;ct={$count}" . '"><img src="[+icons_cancel+]" />一覧に戻る</a></li>
         <li><a href="#" onclick="submitAction(\'delete\', ' . $id . ');return false;"><img src="[+icons_delete+]" />削除</a></li>
         ', $this->data);
       }
@@ -281,7 +281,7 @@ class cfFormDB {
     
     $this->data['content'] = $this->parser($this->loadTemplate('csv_settings.tpl'), $params);
     $this->data['add_buttons']  = $this->parser('
-    <li><a href="[+posturl+]"><img src="[+icons_refresh+]" /> 一覧表示</a></li>
+    <li><a href="[+posturl+]&amp;mode=list=list"><img src="[+icons_refresh+]" /> 一覧表示</a></li>
     <li><a href="index.php?a=2"><img src="[+icons_cancel+]" /> 閉じる</a></li>
     ', $this->data);
   }
