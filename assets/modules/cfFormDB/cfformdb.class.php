@@ -84,7 +84,7 @@ class cfFormDB {
       $this->data['content'] = $this->parser($this->loadTemplate('tablecreate.tpl'), $this->data);
     } else {
       $defaultView = isset($this->modx->event->params['defaultView']) ? $this->modx->event->params['defaultView'] : 'list';
-      if($defaultView==='csv') {
+      if($defaultView==='csv' && !isset($_GET['mode'])) {
           $this->csv();
           return true;
       }
