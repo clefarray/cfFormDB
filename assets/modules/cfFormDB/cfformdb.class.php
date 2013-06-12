@@ -6,7 +6,7 @@
  * 
  * @author		Clefarray Factory
  * @version	1.0
- * @internal	@properties	&viewFields=一覧画面で表示する項目;text;
+ * @internal	@properties &viewFields=一覧画面で表示する項目;text; &ignoreFields=無視する項目;text; &defaultView=デフォルト画面;list;list,csv;list &sel_csv_fields=CSV出力項目を選択;list;1,0;1
  *
  */  
 class cfFormDB {
@@ -16,6 +16,7 @@ class cfFormDB {
   var $version = '1.0';
   var $tbl_cfformdb;
   var $tbl_cfformdb_detail;
+  var $ignoreParams;
 
   /**
    * コンストラクタ
@@ -32,7 +33,11 @@ class cfFormDB {
     $this->data['theme']     = '/' . $manager_theme;
     $this->data['posturl']   = 'index.php?a=112&id=' . $content['id'];
     $this->data['pagetitle'] = $content['name'] . ' v' .$this->version;
-
+    
+    $this->ignoreParams = $this->modx->event->params['ignoreFields'];
+    if(!empty($this->ignoreParams)) $this->ignoreParams = explode(',', $this->ignoreParams);
+    else                            $this->ignoreParams = array();
+    
     include_once $modx->config['base_path'] . 'manager/includes/extenders/maketable.class.php';
   }
 
@@ -83,6 +88,11 @@ class cfFormDB {
       // テーブルが存在しない場合
       $this->data['content'] = $this->parser($this->loadTemplate('tablecreate.tpl'), $this->data);
     } else {
+      $defaultView = isset($this->modx->event->params['defaultView']) ? $this->modx->event->params['defaultView'] : 'list';
+      if($defaultView==='csv' && !isset($_GET['mode'])) {
+          $this->csv();
+          return true;
+      }
       /**
        * 登録済みデータの一覧表示
        */
@@ -135,11 +145,14 @@ class cfFormDB {
           $detail_rs = $this->modx->db->select('field,value', $this->tbl_cfformdb_detail, $where, 'rank ASC');
           $records[$loop]['id'] = $buf['postid'];
           while ($detail_buf = $this->modx->db->getRow($detail_rs)) {
+            if(in_array($detail_buf['field'], $this->ignoreParams)) continue;
+            if(100 < mb_strlen($detail_buf['value'],'utf8'))
+                $detail_buf['value'] = mb_substr($detail_buf['value'],0,100,'utf8') . ' ...';
             $records[$loop][$detail_buf['field']] = $detail_buf['value'];
             $field_keys[$detail_buf['field']] = 1;
           }
           $records[$loop]['created'] = $buf['created'];
-          $records[$loop]['view'] = '<a href="[+posturl+]" onclick="submitAction(\'allfields\', ' . $buf['postid'] . ');return false;"><img src="[+icons_preview_resource+]" />全項目表示</a>';
+          $records[$loop]['view'] = '<a href="[+posturl+]" onclick="submitAction(\'allfields\', ' . $buf['postid'] . ');return false;"><img src="[+icons_preview_resource+]" />詳細表示</a>';
           $records[$loop]['delete'] = '<a href="[+posturl+]" onclick="submitAction(\'delete\', ' . $buf['postid'] . ');return false;"><img src="[+icons_delete+]" />削除</a>';
           $loop++;
         }
@@ -166,8 +179,13 @@ class cfFormDB {
         $this->data['content'] = $this->parser($this->loadTemplate('list.tpl'), $params);
         $this->data['page'] = $page;
         $this->data['count'] = $count;
+        $this->data['add_buttons']  = $this->parser('
+        <li><a href="#" onclick="submitAction(\'csv\',\'\');return false;"><img src="[+icons_save+]" /> CSV出力</a></li>
+        <li><a href="[+posturl+]"><img src="[+icons_refresh+]" /> 再読み込み</a></li>
+        <li><a href="index.php?a=2"><img src="[+icons_cancel+]" /> 閉じる</a></li>
+        ', $this->data);
       } else {
-        $this->data['content'] = '<p>データはありません</p>';
+        $this->data['content'] = '<div class="sectionBody">データはありません</div>';
       }
     }
   }
@@ -191,6 +209,7 @@ class cfFormDB {
         while ($buf = $this->modx->db->getRow($rs)) {
           $created = $buf['created'];
           unset($buf['created']);
+          $buf['value'] = nl2br($buf['value']);
           $records[] = $buf;
         }
         
@@ -199,10 +218,12 @@ class cfFormDB {
         $tbl->setRowRegularClass('gridItem');
         $tbl->setRowAlternateClass('gridAltItem');
 
-        $this->data['content'] = sprintf("<p>ID: %d<br />投稿日時：%s</p>", $id, $created) . $this->parser($tbl->create($records, array()), $this->data);
+        $content = sprintf("<p>ID: %d<br />投稿日時：%s</p>", $id, $created) . $this->parser($tbl->create($records, array()), $this->data);
+        $this->data['content'] = '<div class="sectionBody">' . $content . '</div>';
         $this->data['add_buttons']  = $this->parser('
-          <li><a href="[+posturl+]&amp;cfp=' . $page . '&amp;ct=' . $count . '"><img src="[+icons_cancel+]" />一覧に戻る</a></li>
-          <li><a href="#" onclick="submitAction(\'delete\', ' . $id . ');return false;"><img src="[+icons_delete+]" />削除</a></li>', $this->data);
+        <li><a href="[+posturl+]&amp;mode=list&amp;cfp=' . "{$page}&amp;ct={$count}" . '"><img src="[+icons_cancel+]" />一覧に戻る</a></li>
+        <li><a href="#" onclick="submitAction(\'delete\', ' . $id . ');return false;"><img src="[+icons_delete+]" />削除</a></li>
+        ', $this->data);
       }
     }  
   }
@@ -218,10 +239,15 @@ class cfFormDB {
       $this->modx->db->query($sql);
       $sql = sprintf("DELETE FROM %s WHERE postid=%d LIMIT 1", $this->tbl_cfformdb_detail, $id);
       $this->modx->db->query($sql);
-      $this->data['content'] = $this->parser('<p>ID: ' . $id . 'の投稿を削除しました<br />
+      $this->data['content'] = $this->parser('
+        <div class="section">
+        <div class="sectionBody">
+        <p>ID: ' . $id . 'の投稿を削除しました<br />
         <ul class="actionButtons">
           <li><a href="[+posturl+]"><img src="[+icons_save+]" />戻る</a></li>
-        </ul>', $this->data);
+        </ul>
+        </div>
+        </div>', $this->data);
     } 
   }
 
@@ -242,13 +268,30 @@ class cfFormDB {
     // 項目一覧を取得
     $rs = $this->modx->db->select('DISTINCT(field)', $this->tbl_cfformdb_detail, '', 'rank');
     $loop = 0;
+    $fields = array();
+    $tpl = '<input type="checkbox" name="fields[]" value="%s" id="f_%d" %s /> <label for="f_%d">%s</label>';
     while ($buf = $this->modx->db->getRow($rs)) {
-      $fields[] = sprintf('<input type="checkbox" name="fields[]" value="%s" id="f_%d" checked="checked" /> <label for="f_%d">%s</label>', $buf['field'], $loop, $loop, $buf['field']);
+      $checked = in_array($buf['field'], $this->ignoreParams) ? '' : 'checked="checked"';
+      $fields[] = sprintf($tpl, $buf['field'], $loop, $checked, $loop, $buf['field']);
       $loop++;
     }
+    $params = $this->data;
     $params['fields'] = implode("<br />", $fields);
+    $params['site_url'] = $this->modx->config['site_url'];
+    $params['manager_url'] = MODX_MANAGER_URL;
+    $params['mgrlog_datefr'] = 'この日付から';
+    $params['mgrlog_dateto'] = 'この日付まで';
+    $params['datepicker_offset'] = $this->modx->config['datepicker_offset'];
+    $params['datetime_format']   = $this->modx->config['datetime_format'];
+    $params['dayNames']          = "['日','月','火','水','木','金','土']";
+    $params['monthNames']        = "['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月']";
+    $params['display'] = $this->modx->event->params['sel_csv_fields']==='1' ? '' : 'none';
     
     $this->data['content'] = $this->parser($this->loadTemplate('csv_settings.tpl'), $params);
+    $this->data['add_buttons']  = $this->parser('
+    <li><a href="[+posturl+]&amp;mode=list=list"><img src="[+icons_refresh+]" /> 一覧表示</a></li>
+    <li><a href="index.php?a=2"><img src="[+icons_cancel+]" /> 閉じる</a></li>
+    ', $this->data);
   }
 
   /**
@@ -259,8 +302,8 @@ class cfFormDB {
     
     // 出力する項目を取得
     if (!count($_POST['fields'])) {
-      $this->e->setError(1, '出力する項目がありません');
-      $this->e->dumpError();
+      echo '<script>alert("出力する項目がありません");location.href="' . $this->data["posturl"] . '";</script>';
+      exit;
     } else {
       $fields = array();
       foreach ($_POST['fields'] as $val) {
@@ -276,14 +319,29 @@ class cfFormDB {
     }
     // ソート
     $sort = ($_POST['sort'] ? "created DESC" : "created ASC");
-    
+    // 期間指定
+    $start = !empty($_POST['start']) ? $this->modx->db->escape($_POST['start']) : 0;
+    $end   = !empty($_POST['end'])   ? $this->modx->db->escape($_POST['end'])   : 0;
+    if(!empty($start) && !empty($end))
+    {
+        $where = "WHERE created BETWEEN '{$start}' AND '{$end}'";
+    }
+    elseif(!empty($start))
+    {
+        $where = "WHERE created >= '{$start}'";
+    }
+    elseif(!empty($end))
+    {
+        $where = "WHERE created <= '{$end}'";
+    }
+    else $where = '';
     // データ出力
     header('Content-type: application/octet-stream');
     header('Content-Disposition: attachment; filename=cfoutput.csv');
 
     ob_start();
     $loop = 0;
-    $sql = sprintf("SELECT postid,created FROM %s ORDER BY %s", $this->tbl_cfformdb, $sort) . ($count ? ' LIMIT ' . $count : '');
+    $sql = sprintf("SELECT postid,created FROM %s %s ORDER BY %s", $this->tbl_cfformdb, $where, $sort) . ($count ? ' LIMIT ' . $count : '');
     $rs = $this->modx->db->query($sql);
     echo '//' . implode(',', array_merge(array('ID'), array_values($_POST['fields']), array('datetime'))) . "\n";
     while ($buf = $this->modx->db->getRow($rs)) {
@@ -293,18 +351,23 @@ class cfFormDB {
       $detail = array();
       while ($detail_buf = $this->modx->db->getRow($detail_rs)) {
         if (in_array($detail_buf['field'], $_POST['fields'])) {
-          $detail[$detail_buf['field']] = $detail_buf['value'];
+            if(strpos($detail_buf['value'],'"')!==false)
+                $detail_buf['value'] = str_replace('"','""',$detail_buf['value']);
+            $detail[$detail_buf['field']] = $detail_buf['value'];
         }
       }
       foreach ($_POST['fields'] as $field) {
         echo '"' . $detail[$field] . '",';
       }
-      echo $buf['created'] . "\n";
+      echo '"'.$buf['created'].'"' . "\n";
       $loop++;
     }
     $output = ob_get_flush();
     ob_end_clean();
-    echo mb_convert_encoding($output, 'sjis', 'utf-8');
+    $output = mb_convert_encoding($output, 'sjis', 'utf-8');
+    $size = strlen($output);
+    header("Content-Length: {$size}");
+    echo $output;
     exit;
   }
 
@@ -325,7 +388,7 @@ class cfFormDB {
       $sql = "CREATE TABLE {$this->tbl_cfformdb} (`postid` int auto_increment primary key, `created` datetime) ENGINE=MyISAM";
       $this->modx->db->query($sql.$char_collate);
       if (!($err = $this->modx->db->getLastError())) {
-        $sql = "CREATE TABLE {$this->tbl_cfformdb_detail} (`postid` int not null, `field` varchar(255) not null, `value` text, `rank` int) ENGINE=MyISAM";
+        $sql = "CREATE TABLE {$this->tbl_cfformdb_detail} (`postid` int not null primary key, `field` varchar(255) not null, `value` text, `rank` int) ENGINE=MyISAM";
         $this->modx->db->query($sql.$char_collate);
         if (!($err2 = $this->modx->db->getLastError())) {
           $this->modx->db->query('COMMIT');
@@ -334,10 +397,14 @@ class cfFormDB {
       }
 
       if ($flag) {
-        $content = $this->parser('テーブルを作成しました<br />
+        $content = $this->parser('
+        <div class="section">
+        <div class="sectionBody">
+        テーブルを作成しました<br />
         <ul class="actionButtons">
           <li><a href="[+posturl+]"><img src="[+icons_save+]" />戻る</a></li>
-        </ul>', $this->data);
+        </ul>
+        </div></div>', $this->data);
       } else {
         $this->modx->db->query('ROLLBACK');
         $content = 'テーブル作成に失敗しました::' . $err . "::" . $err2;
