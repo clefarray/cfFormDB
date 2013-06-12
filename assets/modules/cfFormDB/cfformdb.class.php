@@ -6,7 +6,7 @@
  * 
  * @author		Clefarray Factory
  * @version	1.0
- * @internal	@properties &viewFields=一覧画面で表示する項目;text; &defaultView=デフォルト画面;list;list,csv;list &sel_csv_fields=CSV出力項目を選択;list;1,0;1
+ * @internal	@properties &viewFields=一覧画面で表示する項目;text; &ignoreFields=無視する項目;text; &defaultView=デフォルト画面;list;list,csv;list &sel_csv_fields=CSV出力項目を選択;list;1,0;1
  *
  */  
 class cfFormDB {
@@ -16,6 +16,7 @@ class cfFormDB {
   var $version = '1.0';
   var $tbl_cfformdb;
   var $tbl_cfformdb_detail;
+  var $ignoreParams;
 
   /**
    * コンストラクタ
@@ -32,7 +33,11 @@ class cfFormDB {
     $this->data['theme']     = '/' . $manager_theme;
     $this->data['posturl']   = 'index.php?a=112&id=' . $content['id'];
     $this->data['pagetitle'] = $content['name'] . ' v' .$this->version;
-
+    
+    $this->ignoreParams = $this->modx->event->params['ignoreFields'];
+    if(!empty($this->ignoreParams)) $this->ignoreParams = explode(',', $this->ignoreParams);
+    else                            $this->ignoreParams = array();
+    
     include_once $modx->config['base_path'] . 'manager/includes/extenders/maketable.class.php';
   }
 
@@ -140,6 +145,7 @@ class cfFormDB {
           $detail_rs = $this->modx->db->select('field,value', $this->tbl_cfformdb_detail, $where, 'rank ASC');
           $records[$loop]['id'] = $buf['postid'];
           while ($detail_buf = $this->modx->db->getRow($detail_rs)) {
+            if(in_array($detail_buf['field'], $this->ignoreParams)) continue;
             if(100 < mb_strlen($detail_buf['value'],'utf8'))
                 $detail_buf['value'] = mb_substr($detail_buf['value'],0,100,'utf8') . ' ...';
             $records[$loop][$detail_buf['field']] = $detail_buf['value'];
@@ -263,8 +269,10 @@ class cfFormDB {
     $rs = $this->modx->db->select('DISTINCT(field)', $this->tbl_cfformdb_detail, '', 'rank');
     $loop = 0;
     $fields = array();
+    $tpl = '<input type="checkbox" name="fields[]" value="%s" id="f_%d" %s /> <label for="f_%d">%s</label>';
     while ($buf = $this->modx->db->getRow($rs)) {
-      $fields[] = sprintf('<input type="checkbox" name="fields[]" value="%s" id="f_%d" checked="checked" /> <label for="f_%d">%s</label>', $buf['field'], $loop, $loop, $buf['field']);
+      $checked = in_array($buf['field'], $this->ignoreParams) ? '' : 'checked="checked"';
+      $fields[] = sprintf($tpl, $buf['field'], $loop, $checked, $loop, $buf['field']);
       $loop++;
     }
     $params = $this->data;
