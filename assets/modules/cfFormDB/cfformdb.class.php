@@ -388,7 +388,7 @@ class cfFormDB {
       $sql = "CREATE TABLE {$this->tbl_cfformdb} (`postid` int auto_increment primary key, `created` datetime) ENGINE=MyISAM";
       $this->modx->db->query($sql.$char_collate);
       if (!($err = $this->modx->db->getLastError())) {
-        $sql = "CREATE TABLE {$this->tbl_cfformdb_detail} (`postid` int not null primary key, `field` varchar(255) not null, `value` text, `rank` int) ENGINE=MyISAM";
+        $sql = "CREATE TABLE {$this->tbl_cfformdb_detail} (`postid` int not null, `field` varchar(255) not null, `value` text, `rank` int, PRIMARY KEY ( `postid` , `field` )) ENGINE=MyISAM";
         $this->modx->db->query($sql.$char_collate);
         if (!($err2 = $this->modx->db->getLastError())) {
           $this->modx->db->query('COMMIT');
