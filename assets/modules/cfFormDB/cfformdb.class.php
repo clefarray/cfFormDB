@@ -258,7 +258,7 @@ class cfFormDB {
     if ($id) {
       $sql = sprintf("DELETE FROM %s WHERE postid=%d LIMIT 1", $this->tbl_cfformdb, $id);
       $this->modx->db->query($sql);
-      $sql = sprintf("DELETE FROM %s WHERE postid=%d LIMIT 1", $this->tbl_cfformdb_detail, $id);
+      $sql = sprintf("DELETE FROM %s WHERE postid=%d", $this->tbl_cfformdb_detail, $id);
       $this->modx->db->query($sql);
       $this->data['content'] = $this->parser('
         <div class="section">
