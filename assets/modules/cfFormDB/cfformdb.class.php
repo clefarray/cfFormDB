@@ -6,7 +6,7 @@
  * 
  * @author		Clefarray Factory
  * @version	1.0
- * @internal	@properties &viewFields=一覧画面で表示する項目;text; &ignoreFields=無視する項目;text; &defaultView=デフォルト画面;list;list,csv;list &sel_csv_fields=CSV出力項目を選択;list;1,0;1
+ * @internal	@properties &viewFields=一覧画面で表示する項目;text; &ignoreFields=無視する項目;text; &defaultView=デフォルト画面;list;list,csv;list &sel_csv_fields=CSV出力項目を選択;list;1,0;1 &headLabels=表示や出力時のヘッダラベル;textarea
  *
  */  
 class cfFormDB {
@@ -17,6 +17,7 @@ class cfFormDB {
   var $tbl_cfformdb;
   var $tbl_cfformdb_detail;
   var $ignoreParams;
+  var $headLabel;
 
   /**
    * コンストラクタ
@@ -38,6 +39,22 @@ class cfFormDB {
     if(!empty($this->ignoreParams)) $this->ignoreParams = explode(',', $this->ignoreParams);
     else                            $this->ignoreParams = array();
     
+    /*
+     *ラベルを任意に設定できるように調整。
+     * フォームからPostされるnameとラベルの対応を以下のようにモジュール設定画面で定義すると反映する感じ。
+     * name|ラベル,name2|ラベル2,name3|ラベル3, …
+     * |か;でnameとラベルのペアを区切る。カンマでペアを増やす感じ。
+     */
+    $this->headLabel = array();
+    $headLabels = $this->modx->event->params['headLabels'];
+    if(!empty($headLabels)){
+        $headLabels = explode(',', $headLabels);
+        foreach($headLabels as $item){
+            preg_match('/(.+)[\|;](.+)/',$item,$m);
+            $this->headLabel[$m[1]]=$m[2];
+        }
+    }
+
     include_once $modx->config['base_path'] . 'manager/includes/extenders/maketable.class.php';
   }
 
@@ -149,7 +166,7 @@ class cfFormDB {
             if(100 < mb_strlen($detail_buf['value'],'utf8'))
                 $detail_buf['value'] = mb_substr($detail_buf['value'],0,100,'utf8') . ' ...';
             $records[$loop][$detail_buf['field']] = $detail_buf['value'];
-            $field_keys[$detail_buf['field']] = 1;
+            $field_keys[$detail_buf['field']] = $this->getLabel($detail_buf['field']);
           }
           $records[$loop]['created'] = $buf['created'];
           $records[$loop]['view'] = '<a href="[+posturl+]" onclick="submitAction(\'allfields\', ' . $buf['postid'] . ');return false;"><img src="[+icons_preview_resource+]" />詳細表示</a>';
@@ -162,12 +179,14 @@ class cfFormDB {
         $tbl->setRowHeaderClass('gridHeader');
         $tbl->setRowRegularClass('gridItem');
         $tbl->setRowAlternateClass('gridAltItem');
-        $listTableHeader = array(
-      	  'id' => 'ID',
-      	  array_keys($field_keys),
-      	  'created' => '投稿日時',
-      	  'view' => '表示',
-      	  'delete' => '削除'
+        $listTableHeader = array_merge(
+            array(
+                'id' => 'ID',
+                'created' => '投稿日時',
+                'view' => '表示',
+                'delete' => '削除'
+            ),
+            $field_keys
         );
         
         foreach (array(30, 50, 100) as $val) {
@@ -210,6 +229,7 @@ class cfFormDB {
           $created = $buf['created'];
           unset($buf['created']);
           $buf['value'] = nl2br($buf['value']);
+          $buf['field'] = $this->getLabel($buf['field']);
           $records[] = $buf;
         }
         
@@ -217,8 +237,9 @@ class cfFormDB {
         $tbl->setTableClass('grid');
         $tbl->setRowRegularClass('gridItem');
         $tbl->setRowAlternateClass('gridAltItem');
+        $listTableHeader = array('field' => '項目','value' => '登録内容');
 
-        $content = sprintf("<p>ID: %d<br />投稿日時：%s</p>", $id, $created) . $this->parser($tbl->create($records, array()), $this->data);
+        $content = sprintf("<p>ID: %d<br />投稿日時：%s</p>", $id, $created) . $this->parser($tbl->create($records, $listTableHeader), $this->data);
         $this->data['content'] = '<div class="sectionBody">' . $content . '</div>';
         $this->data['add_buttons']  = $this->parser('
         <li><a href="[+posturl+]&amp;mode=list&amp;cfp=' . "{$page}&amp;ct={$count}" . '"><img src="[+icons_cancel+]" />一覧に戻る</a></li>
@@ -237,7 +258,7 @@ class cfFormDB {
     if ($id) {
       $sql = sprintf("DELETE FROM %s WHERE postid=%d LIMIT 1", $this->tbl_cfformdb, $id);
       $this->modx->db->query($sql);
-      $sql = sprintf("DELETE FROM %s WHERE postid=%d LIMIT 1", $this->tbl_cfformdb_detail, $id);
+      $sql = sprintf("DELETE FROM %s WHERE postid=%d", $this->tbl_cfformdb_detail, $id);
       $this->modx->db->query($sql);
       $this->data['content'] = $this->parser('
         <div class="section">
@@ -272,7 +293,8 @@ class cfFormDB {
     $tpl = '<input type="checkbox" name="fields[]" value="%s" id="f_%d" %s /> <label for="f_%d">%s</label>';
     while ($buf = $this->modx->db->getRow($rs)) {
       $checked = in_array($buf['field'], $this->ignoreParams) ? '' : 'checked="checked"';
-      $fields[] = sprintf($tpl, $buf['field'], $loop, $checked, $loop, $buf['field']);
+      $label = $this->getLabel($buf['field']);
+      $fields[] = sprintf($tpl, $buf['field'], $loop, $checked, $loop, $label);
       $loop++;
     }
     $params = $this->data;
@@ -306,8 +328,10 @@ class cfFormDB {
       exit;
     } else {
       $fields = array();
+      $labels = array();
       foreach ($_POST['fields'] as $val) {
         $fields[] = "'" . $val . "'";
+        $labels[$val]=$this->getLabel($val);
       }
     }
     // 出力数
@@ -343,7 +367,7 @@ class cfFormDB {
     $loop = 0;
     $sql = sprintf("SELECT postid,created FROM %s %s ORDER BY %s", $this->tbl_cfformdb, $where, $sort) . ($count ? ' LIMIT ' . $count : '');
     $rs = $this->modx->db->query($sql);
-    echo '//' . implode(',', array_merge(array('ID'), array_values($_POST['fields']), array('datetime'))) . "\n";
+    echo '//' . implode(',', array_merge(array('ID'), array_values($labels), array('datetime'))) . "\n";
     while ($buf = $this->modx->db->getRow($rs)) {
       echo $buf['postid'] . ',';
       $sql = sprintf("SELECT * FROM %s WHERE postid=%d AND field IN (%s) ORDER BY rank", $this->tbl_cfformdb_detail, $buf['postid'], implode(',', $fields));
@@ -425,6 +449,22 @@ class cfFormDB {
     }
     return false;
   }
+
+    /**
+    *　ラベル指定取得
+    *    指定がなければそのまま
+    */
+    function getLabel($f=''){
+        $r='';
+        if(!empty($f)){
+            if(isset($this->headLabel[$f]) && !empty($this->headLabel[$f])){
+                $r=$this->headLabel[$f];
+            }else{
+                $r=$f;
+            }
+        }
+        return $r;
+    }
 
   /**
    * 画面出力
