@@ -6,7 +6,7 @@
  * 
  * @author		Clefarray Factory
  * @version	1.0
- * @internal	@properties &viewFields=一覧画面で表示する項目;text; &ignoreFields=無視する項目;text; &defaultView=デフォルト画面;list;list,csv;list &sel_csv_fields=CSV出力項目を選択;list;1,0;1 &headLabels=表示や出力時のヘッダラベル;textarea
+ * @internal	@properties  &viewFields=一覧画面で表示する項目;text; &ignoreFields=無視する項目;text; &defaultView=デフォルト画面;list;list,csv;list &sel_csv_fields=CSV出力項目を選択;list;1,0;1 &headLabels=表示や出力時のヘッダラベル<br>【書式】name|ラベル,name2|ラベル2,…;textarea;
  *
  */  
 class cfFormDB {
@@ -19,10 +19,7 @@ class cfFormDB {
   var $ignoreParams;
   var $headLabel;
 
-  /**
-   * コンストラクタ
-   */
-  function cfFormDB($modx) {
+  function __construct($modx) {
     global $manager_theme, $_style, $e, $incPath, $content;
 
     $this->modx = &$modx;
@@ -55,7 +52,7 @@ class cfFormDB {
         }
     }
 
-    include_once $modx->config['base_path'] . 'manager/includes/extenders/maketable.class.php';
+    $this->modx->loadExtension('maketable');
   }
 
   /**
