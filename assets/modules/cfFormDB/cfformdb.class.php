@@ -52,7 +52,7 @@ class cfFormDB {
         }
     }
 
-    $this->modx->loadExtension('maketable');
+    $this->modx->loadExtension('MakeTable');
   }
 
   /**
